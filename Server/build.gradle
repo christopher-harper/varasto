@@ -9,7 +9,10 @@
 
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
-
+//apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+//apply plugin: 'com.jfrog.artifactory-publish'
+//apply plugin: "com.gradle.plugin-publish"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -28,9 +31,54 @@ dependencies {
     compile 'log4j:log4j:1.+'
 	compile 'commons-io:commons-io:2.5'
 	compile 'commons-lang:commons-lang:2.6'
+	compile 'org.basex:basex:7.+'
     // Declare the dependency for your favourite test framework you want to use in your tests.
     // TestNG is also supported by the Gradle Test task. Just change the
     // testCompile dependency to testCompile 'org.testng:testng:6.8.1' and add
     // 'test.useTestNG()' to your build script.
     testCompile 'junit:junit:4.12'
+}
+
+
+buildscript {
+    repositories {
+        maven {
+            url 'http://localhost:8081/artifactory/plugins-snapshot'
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+        
+    }
+    dependencies {
+        //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+    }
+}
+
+allprojects {
+    apply plugin: "com.jfrog.artifactory"
+}
+
+artifactory {
+    contextUrl = "${artifactory_contextUrl}"   //The base Artifactory URL if not overridden by the publisher/resolver
+    publish {
+        repository {
+            repoKey = 'libs-release-local'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+            
+        }
+    }
+    resolve {
+        repository {
+            repoKey = 'libs-snapshot'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+            
+        }
+    }
 }

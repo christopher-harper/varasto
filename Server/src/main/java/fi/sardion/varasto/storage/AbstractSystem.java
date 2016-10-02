@@ -1,5 +1,7 @@
 package fi.sardion.varasto.storage;
 
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,6 +21,10 @@ public abstract class AbstractSystem extends Object {
 	 */
 	private static final String STORAGE_ENCRYPTED = "storageEncrypted"; //$NON-NLS-1$
 	/**
+	 * Where the storage is located for example file system path, URL, etc.
+	 */
+	private static final String STORAGE_LOCATION = "storageLocation"; //$NON-NLS-1$
+	/**
 	 * Element name for the storage name.
 	 */
 	private static final String STORAGE_NAME = "storageName"; //$NON-NLS-1$
@@ -28,22 +34,26 @@ public abstract class AbstractSystem extends Object {
 	 */
 	private static final String STORAGE_WRITABLE = "storageWritable"; //$NON-NLS-1$
 	/**
-	 * Where the storage is located for example file system path, URL, etc.
-	 */
-	private static final String STORAGE_LOCATION = "storageLocation"; //$NON-NLS-1$
-	/**
 	 * The configurations for the store.
 	 */
-	private Document config;
+	private Element config;
 
 	/**
 	 * @param aConfig
+	 * @throws IOException 
 	 */
-	public AbstractSystem(Document aConfig) {
+	public AbstractSystem(final Element aConfig) throws IOException {
 		super();
 		LOGGER.info("Initialising AbstractSystem."); //$NON-NLS-1$
 		setConfig(aConfig);
 		initialize();
+	}
+
+	/**
+	 * @return the storage location.
+	 */
+	public String getLocation() {
+		return getStringContent(STORAGE_LOCATION);
 	}
 
 	/**
@@ -73,7 +83,7 @@ public abstract class AbstractSystem extends Object {
 	 * 
 	 * @return the config object.
 	 */
-	protected Document getConfig() {
+	protected Element getConfig() {
 		return this.config;
 	}
 
@@ -118,20 +128,20 @@ public abstract class AbstractSystem extends Object {
 	 * @param aConfig
 	 *            the configuration for this storage.
 	 */
-	protected void setConfig(Document aConfig) {
+	protected void setConfig(Element aConfig) {
+		if (aConfig == null) {
+			NullPointerException npex = new NullPointerException("The given config object is null!");
+			LOGGER.error(npex.getMessage(), npex);
+			throw npex;
+		}
 		LOGGER.debug("Setting config."); //$NON-NLS-1$
 		this.config = aConfig;
 	}
 
 	/**
-	 * @return the storage location.
-	 */
-	public String getLocation() {
-		return getStringContent(STORAGE_LOCATION);
-	}
-
-	/**
 	 * Initialize the store and perform checks whether it is operable.
+	 * 
+	 * @throws IOException
 	 */
-	abstract void initialize();
+	abstract void initialize() throws IOException;
 }
